@@ -10,11 +10,16 @@ users = {
     'admin': User('admin', 'adminpass', 'admin'),
     'user': User('user', 'userpass', 'user')
 }
+# Assuming 'products' is a list of FencingEquipment instances
 products = [
-    FencingEquipment("Foil Blade", "A lightweight foil blade.", 50.0, 10, 90, "Steel", 500, "BrandA"),
-    FencingEquipment("Épée Blade", "A medium-weight épée blade.", 60.0, 8, 110, "Alloy", 600, "BrandB"),
-    FencingEquipment("Sabre Blade", "A sabre blade for advanced fencers.", 70.0, 5, 105, "Carbon Fiber", 550, "BrandC")
+    FencingEquipment("Foil Blade", "A lightweight foil blade.", 50.0, 10, 90, "Steel", 500, "BrandA", image_url="/static/uploads/FoilBlade.jpg"),
+    FencingEquipment("Épée Blade", "A medium-weight épée blade.", 60.0, 8, 110, "Alloy", 600, "BrandB", image_url="/static/uploads/EpeeBlade.jpg"),
+    FencingEquipment("Sabre Blade", "A sabre blade for advanced fencers.", 70.0, 5, 105, "Carbon Fiber", 550, "BrandC", image_url="/static/uploads/SabreBlade.jpg"),
+FencingEquipment("Practice Foil", "Perfect for beginners and training sessions.", 45.0, 20, 85, "Aluminum", 450, "BrandD", image_url="/static/uploads/PracticeFoil.jpg"),
+    FencingEquipment("Competition Épée", "Ideal for professional épée competitions.", 80.0, 7, 115, "Titanium Alloy", 620, "BrandE", image_url="/static/uploads/CompetitionEpee.jpg"),
+    FencingEquipment("Premium Sabre", "A high-quality sabre for expert fencers.", 95.0, 4, 100, "High-Carbon Steel", 560, "BrandF", image_url="/static/uploads/PremiumSabre.jpg")
 ]
+
 cart = Cart()
 
 

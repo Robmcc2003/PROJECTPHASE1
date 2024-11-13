@@ -5,8 +5,10 @@ class User:
         self.password = password
         self.role = role  # 'admin', 'user', or 'guest'
 
+# models.py
+
 class FencingEquipment:
-    def __init__(self, name, description, price, stock, blade_length, material, weight, brand):
+    def __init__(self, name, description, price, stock, blade_length, material, weight, brand, image_url=None):
         self.name = name
         self.description = description
         self.price = price
@@ -15,6 +17,8 @@ class FencingEquipment:
         self.material = material
         self.weight = weight
         self.brand = brand
+        self.image_url = image_url  # URL to the product image
+
 
 class Cart:
     def __init__(self):
