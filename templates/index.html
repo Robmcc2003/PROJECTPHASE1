@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Shop in Style</h1>
+            <p class="lead fw-normal text-white-50 mb-0">Premium fencing equipment for all skill levels</p>
+        </div>
+    </div>
+</header>
+
+<section class="py-5">
+    <div class="container px-4 px-lg-5 mt-5">
+        <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-md-2 row-cols-xl-4 justify-content-center">
+            {% for product_id, product in products %}
+                <div class="col mb-5">
+                    <div class="card h-100 shadow">
+                        <img class="card-img-top" src="https://dummyimage.com/450x300/dee2e6/6c757d.jpg" alt="{{ product.name }}">
+                        <div class="card-body p-4 text-center">
+                            <h5 class="fw-bolder">{{ product.name }}</h5>
+                            <p class="price">${{ product.price }}</p>
+                        </div>
+                        <div class="card-footer p-4 pt-0 border-top-0 bg-transparent text-center">
+                            <a class="btn btn-outline-dark mt-auto" href="{{ url_for('product_detail', product_id=product_id) }}">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
