@@ -4,7 +4,6 @@
 <div class="container py-5">
     <div class="row">
         <div class="col-md-6">
-            <!-- Display product image if available -->
             {% if product.image_url %}
                 <img src="{{ product.image_url }}" class="img-fluid mb-4" alt="{{ product.name }}">
             {% else %}
@@ -14,7 +13,23 @@
         <div class="col-md-6">
             <h2 class="mb-3">{{ product.name }}</h2>
             <p class="lead">{{ product.description }}</p>
-            <h4 class="mb-4">${{ product.price }}</h4>
+            <h4 class="text-muted mb-4">${{ product.price }}</h4>
+
+            <ul class="list-group mb-3">
+                <li class="list-group-item">
+                    <strong>Blade Length:</strong> {{ product.blade_length }} cm
+                </li>
+                <li class="list-group-item">
+                    <strong>Material:</strong> {{ product.material }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Weight:</strong> {{ product.weight }} g
+                </li>
+                <li class="list-group-item">
+                    <strong>Brand:</strong> {{ product.brand }}
+                </li>
+            </ul>
+
             <form action="{{ url_for('add_to_cart', product_id=product_id) }}" method="post">
                 <div class="mb-3">
                     <label for="quantity" class="form-label">Quantity:</label>

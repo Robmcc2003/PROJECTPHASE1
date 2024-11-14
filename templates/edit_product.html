@@ -32,6 +32,12 @@
             <label for="weight" class="form-label">Weight:</label>
             <input type="number" name="weight" id="weight" step="0.1" value="{{ product.weight }}" class="form-control" required>
         </div>
+        {% if product.image_url %}
+            <div class="mb-3">
+                <p>Current Image:</p>
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width: 150px; height: auto;">
+            </div>
+        {% endif %}
         <button type="submit" class="btn btn-primary">Update Product</button>
     </form>
 </div>

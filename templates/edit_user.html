@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h2>Edit User - {{ username }}</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="role" class="form-label">Role:</label>
+            <select name="role" id="role" class="form-select" required>
+                <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Update User</button>
+    </form>
+</div>
+{% endblock %}
