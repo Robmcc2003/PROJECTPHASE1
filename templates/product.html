@@ -13,21 +13,48 @@
         <div class="col-md-6">
             <h2 class="mb-3">{{ product.name }}</h2>
             <p class="lead">{{ product.description }}</p>
-            <h4 class="text-muted mb-4">${{ product.price }}</h4>
+            <h4 class="text-muted mb-4">Price: ${{ product.price }}</h4>
+
+            {% if product.delivery_fee > 0 %}
+                <h5 class="text-muted mb-4">Delivery Fee: ${{ product.delivery_fee }}</h5>
+            {% else %}
+                <h5 class="text-muted mb-4">Delivery Fee: Free</h5>
+            {% endif %}
+
+            {% if product.stock > 0 %}
+                <p><strong>Stock Available:</strong> {{ product.stock }}</p>
+            {% else %}
+                <p><strong>Out of Stock</strong></p>
+            {% endif %}
 
             <ul class="list-group mb-3">
-                <li class="list-group-item">
-                    <strong>Blade Length:</strong> {{ product.blade_length }} cm
-                </li>
-                <li class="list-group-item">
-                    <strong>Material:</strong> {{ product.material }}
-                </li>
-                <li class="list-group-item">
-                    <strong>Weight:</strong> {{ product.weight }} g
-                </li>
-                <li class="list-group-item">
-                    <strong>Brand:</strong> {{ product.brand }}
-                </li>
+                {% if product.type == 'Blade' %}
+                    <li class="list-group-item">
+                        <strong>Blade Length:</strong> {{ product.blade_length }} cm
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Material:</strong> {{ product.material }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Weight:</strong> {{ product.weight }} g
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Brand:</strong> {{ product.brand }}
+                    </li>
+                {% elif product.type == 'Jacket' %}
+                    <li class="list-group-item">
+                        <strong>Size:</strong> {{ product.size }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Material:</strong> {{ product.material }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Padding Level:</strong> {{ product.padding_level }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Brand:</strong> {{ product.brand }}
+                    </li>
+                {% endif %}
             </ul>
 
             <form action="{{ url_for('add_to_cart', product_id=product_id) }}" method="post">
@@ -35,7 +62,7 @@
                     <label for="quantity" class="form-label">Quantity:</label>
                     <input type="number" name="quantity" id="quantity" min="1" max="{{ product.stock }}" value="1" class="form-control" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Add to Cart</button>
+                <button type="submit" class="btn btn-primary" {% if product.stock <= 0 %}disabled{% endif %}>Add to Cart</button>
             </form>
         </div>
     </div>

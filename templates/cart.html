@@ -8,11 +8,17 @@
             {% for item, quantity in cart %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     {{ quantity }}x {{ item.name }}
-                    <span>${{ item.price * quantity }}</span>
+                    <span>Product Total: ${{ item.price * quantity }}</span>
+                    <span>Delivery Fee: ${{ item.delivery_fee * quantity }}</span>
                 </li>
             {% endfor %}
         </ul>
-        <h4>Total: ${{ total }}</h4>
+
+        <!-- Display Total Product Cost and Delivery Fees from backend calculation -->
+        <h5>Product Total: ${{ product_total }}</h5>
+        <h5>Delivery Fees Total: ${{ total_delivery_fee }}</h5>
+        <h4>Total (with Delivery): ${{ grand_total }}</h4>
+
         <a href="{{ url_for('checkout') }}" class="btn btn-success">Proceed to Checkout</a>
     {% else %}
         <p>Your cart is empty.</p>

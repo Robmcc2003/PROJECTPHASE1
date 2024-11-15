@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from datetime import datetime
 from models import FencingEquipment, Cart, User
 
 app = Flask(__name__)
@@ -12,12 +13,28 @@ users = {
 
 # Products list
 products = [
-    FencingEquipment("Foil Blade", "A lightweight foil blade.", 50.0, 10, 90, "Steel", 500, "BrandA", image_url="/static/uploads/FoilBlade.jpg"),
-    FencingEquipment("Épée Blade", "A medium-weight épée blade.", 60.0, 8, 110, "Alloy", 600, "BrandB", image_url="/static/uploads/EpeeBlade.jpg"),
-    FencingEquipment("Sabre Blade", "A sabre blade for advanced fencers.", 70.0, 5, 105, "Carbon Fiber", 550, "BrandC", image_url="/static/uploads/SabreBlade.jpg"),
-    FencingEquipment("Practice Foil", "Perfect for beginners and training sessions.", 45.0, 20, 85, "Aluminum", 450, "BrandD", image_url="/static/uploads/PracticeFoil.jpg"),
-    FencingEquipment("Competition Épée", "Ideal for professional épée competitions.", 80.0, 7, 115, "Titanium Alloy", 620, "BrandE", image_url="/static/uploads/CompetitionEpee.jpg"),
-    FencingEquipment("Premium Sabre", "A high-quality sabre for expert fencers.", 95.0, 4, 100, "High-Carbon Steel", 560, "BrandF", image_url="/static/uploads/PremiumSabre.jpg")
+    # Blades
+    FencingEquipment("Foil Blade", "A lightweight foil blade.", "Blade", 50.0, 10, blade_length=90, material="Steel",
+                     weight=500, brand="BrandA", image_url="/static/uploads/FoilBlade.jpg"),
+    FencingEquipment("Épée Blade", "A medium-weight épée blade.", "Blade", 60.0, 8, blade_length=110, material="Alloy",
+                     weight=600, brand="BrandB", image_url="/static/uploads/EpeeBlade.jpg"),
+    FencingEquipment("Sabre Blade", "A sabre blade for advanced fencers.", "Blade", 70.0, 5, blade_length=105,
+                     material="Carbon Fiber", weight=550, brand="BrandC", image_url="/static/uploads/SabreBlade.jpg"),
+    FencingEquipment("Practice Foil", "Perfect for beginners and training sessions.", "Blade", 45.0, 20,
+                     blade_length=85, material="Aluminum", weight=450, brand="BrandD",
+                     image_url="/static/uploads/PracticeFoil.jpg"),
+    FencingEquipment("Competition Épée", "Ideal for professional épée competitions.", "Blade", 80.0, 7,
+                     blade_length=115, material="Titanium Alloy", weight=620, brand="BrandE",
+                     image_url="/static/uploads/CompetitionEpee.jpg"),
+    FencingEquipment("Premium Sabre", "A high-quality sabre for expert fencers.", "Blade", 95.0, 4, blade_length=100,
+                     material="High-Carbon Steel", weight=560, brand="BrandF",
+                     image_url="/static/uploads/PremiumSabre.jpg"),
+
+    # Jackets
+    FencingEquipment("Lightweight Jacket", "Breathable and flexible jacket.", "Jacket", 55.0, 20, size="Small",
+                     material="Polyester", brand="BrandZ", image_url="/static/uploads/LightweightJacket.jpg"),
+    FencingEquipment("Padded Jacket", "Extra padding for added protection.", "Jacket", 80.0, 12, size="Large",
+                     material="Kevlar", brand="BrandW", image_url="/static/uploads/PaddedJacket.jpg"),
 ]
 
 cart = Cart()
@@ -34,7 +51,6 @@ def is_logged_in_as(role):
 def home():
     return render_template('index.html', products=enumerate(products))
 
-# Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -44,15 +60,32 @@ def login():
         if user and user.password == password:
             session['username'] = username
             session['role'] = user.role
+            log_user_activity("Logged in", username)  # Log user login
             flash(f"Logged in as {user.role}", "success")
             return redirect(url_for('home'))
         else:
             flash("Incorrect username or password.", "danger")
     return render_template('login.html')
 
-# Logout route
+
+@app.route('/update_delivery_fee/<int:product_id>', methods=['POST'])
+def update_delivery_fee(product_id):
+    if session.get('role') != 'admin':
+        flash("Access denied. Admins only.")
+        return redirect(url_for('admin_dashboard'))
+
+    new_delivery_fee = float(request.form['delivery_fee'])
+    if 0 <= product_id < len(products):
+        products[product_id].delivery_fee = new_delivery_fee
+        flash(f"Delivery fee updated for {products[product_id].name}.")
+
+    return redirect(url_for('admin_dashboard'))
+
 @app.route('/logout')
 def logout():
+    username = session.get('username')
+    if username:
+        log_user_activity("Logged out", username)  # Log user logout
     session.clear()
     flash("Logged out successfully.", "info")
     return redirect(url_for('home'))
@@ -79,17 +112,36 @@ def product_detail(product_id):
         return render_template('product.html', product=product, product_id=product_id)
     return redirect(url_for('home'))
 
-# Cart view route
 @app.route('/cart')
 def view_cart():
     if not is_logged_in():
         flash("Please log in to view your cart.", "warning")
         return redirect(url_for('login'))
-    return render_template('cart.html', cart=cart.items, total=cart.total_price())
 
-# Add to cart route
+    # Initialize totals
+    product_total = 0
+    total_delivery_fee = 0
+
+    # Calculate totals based on cart items
+    for item, quantity in cart.items:
+        product_total += item.price * quantity
+        total_delivery_fee += item.delivery_fee * quantity
+
+    # Grand total includes both product total and delivery fees
+    grand_total = product_total + total_delivery_fee
+
+    return render_template(
+        'cart.html',
+        cart=cart.items,
+        product_total=product_total,
+        total_delivery_fee=total_delivery_fee,
+        grand_total=grand_total
+    )
+
+
 @app.route('/add_to_cart/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
+    username = session.get('username')
     if not is_logged_in() or session.get('role') not in ['admin', 'user']:
         flash("Please log in as an admin or user to add items to the cart.", "warning")
         return redirect(url_for('login'))
@@ -98,27 +150,77 @@ def add_to_cart(product_id):
         product = products[product_id]
         quantity = int(request.form['quantity'])
         cart.add_item(product, quantity)
+        log_user_activity(f"Added {quantity} of {product.name} to cart", username)  # Log item addition
         flash(f"Added {quantity} of {product.name} to your cart.", "success")
     return redirect(url_for('view_cart'))
 
-# Checkout route
-@app.route('/checkout')
+
+# List to store sales records and user activities (if not using a database)
+sales = []
+user_activities = []
+
+def log_sale(cart):
+    """Logs completed sales with details of each product and quantity."""
+    items_list = [dict(name=item.name, quantity=quantity, price=item.price) for item, quantity in cart.items]
+    total = calculate_total(cart)
+    sale_record = {
+        "date": datetime.now(),
+        "sale_items": items_list,  # Renamed from `items` to `items_list` to avoid conflicts
+        "total": total
+    }
+    sales.append(sale_record)
+
+def log_user_activity(action, username):
+    """Logs user actions with a timestamp."""
+    activity_record = {
+        "date": datetime.now(),
+        "username": username,
+        "action": action
+    }
+    user_activities.append(activity_record)
+
+@app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
+    username = session.get('username')
     if not is_logged_in() or session.get('role') not in ['admin', 'user']:
         flash("Please log in to proceed with checkout.", "warning")
         return redirect(url_for('login'))
-    flash("Checkout complete! Thank you for your purchase.", "success")
+
+    # Check stock and complete checkout
+    for item, quantity in cart.items:
+        if item.stock < quantity:
+            flash(f"Not enough stock for {item.name}. Only {item.stock} left in stock.", "danger")
+            return redirect(url_for('view_cart'))
+
+    for item, quantity in cart.items:
+        item.stock -= quantity
+
+    # Log the sale
+    log_sale(cart)
+    log_user_activity("Completed checkout", username)  # Log checkout
+
+    # Clear the cart
     cart.items.clear()
+
+    flash("Checkout complete! Thank you for your purchase.", "success")
     return redirect(url_for('home'))
 
-# Admin dashboard route
-@app.route('/admin')
+
+def calculate_total(cart):
+    """
+    Calculate the total cost of items in the cart, including delivery fees.
+    """
+    return sum((item.price + item.delivery_fee) * quantity for item, quantity in cart.items)
+
+
+@app.route('/admin/dashboard')
 def admin_dashboard():
-    if not is_logged_in_as('admin'):
+    if session.get('role') != 'admin':
         flash("Admin access required.", "danger")
         return redirect(url_for('home'))
-    return render_template('admin_dashboard.html', products=products, users=users)
 
+    return render_template('admin_dashboard.html', products=products, users=users, sales=sales,
+                           user_activities=user_activities)
 
 @app.route('/admin/edit_user/<username>', methods=['GET', 'POST'])
 def edit_user(username):
@@ -138,7 +240,6 @@ def edit_user(username):
 
     return render_template('edit_user.html', username=username, user=user)
 
-
 @app.route('/admin/delete_user/<username>', methods=['POST'])
 def delete_user(username):
     if not is_logged_in_as('admin'):
@@ -147,6 +248,7 @@ def delete_user(username):
 
     if username in users:
         del users[username]
+        log_user_activity(f"Deleted user {username}", session.get('username'))  # Log user deletion
         flash(f"User '{username}' has been deleted.", "success")
     else:
         flash("User not found.", "danger")
@@ -212,11 +314,13 @@ def delete_product(product_id):
 
     if 0 <= product_id < len(products):
         deleted_product = products.pop(product_id)
+        log_user_activity(f"Deleted product {deleted_product.name}", session.get('username'))  # Log product deletion
         flash(f"Product '{deleted_product.name}' has been deleted.", "success")
     else:
         flash("Invalid product ID.", "danger")
 
     return redirect(url_for('admin_dashboard'))
+
 
 # Run the app
 if __name__ == '__main__':
